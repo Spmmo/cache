@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cache Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Cache Simulator</h1>
+    <form id="cache-form">
+      <label for="cache-size">Cache Size (bytes):</label>
+      <input type="number" id="cache-size" required>
+
+      <label for="num-blocks">Number of Blocks per Set:</label>
+      <input type="number" id="num-blocks" required>
+
+      <label for="num-words">Number of Words per Block:</label>
+      <input type="number" id="num-words" required>
+
+      <label for="word-addrs">Word Addresses (space-separated):</label>
+      <input type="text" id="word-addrs" required>
+
+      <button type="button" id="run-button">Run Simulation</button>
+    </form>
+
+    <div class="image-container">
+      <img src="https://www.knownhost.com/blog/wp-content/uploads/2023/09/image-9.png.webp" alt="Cache Simulation Image">
+    </div>    
+
+  <script src="script.js"></script>
+</body>
+</html>

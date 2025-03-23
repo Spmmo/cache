@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simulation Result</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Simulation Result</h1>
     <pre id="output"></pre>
+    <canvas id="hitMissChart" width="400" height="200"></canvas>
     <button onclick="goBack()">Back</button>
   </div>
 
@@ -17,10 +19,48 @@
     function goBack() {
       window.location.href = "index.html"; // กลับไปหน้าหลัก
     }
-
+      window.onload = function () {
+    const output = localStorage.getItem("simulationResult");
+    if (output) {
+      document.getElementById("result-output").innerText = output;
+    }
+  };
+  
     document.addEventListener("DOMContentLoaded", function () {
       const outputData = localStorage.getItem("simulationResult");
       document.getElementById("output").textContent = outputData || "No result available.";
+
+      const hitMissData = JSON.parse(localStorage.getItem("hitMissData"));
+      const ctx = document.getElementById('hitMissChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Direct-Mapped', 'Fully Associative', 'Set-Associative'],
+          datasets: [
+            {
+              label: 'Hit',
+              data: [hitMissData.direct.hit, hitMissData.fully.hit, hitMissData.set.hit],
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1,
+            },
+            {
+              label: 'Miss',
+              data: [hitMissData.direct.miss, hitMissData.fully.miss, hitMissData.set.miss],
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
     });
   </script>
 </body>

@@ -19,12 +19,12 @@
     function goBack() {
       window.location.href = "index.html"; // กลับไปหน้าหลัก
     }
-      window.onload = function () {
-    const output = localStorage.getItem("simulationResult");
-    if (output) {
-      document.getElementById("result-output").innerText = output;
-    }
-  };
+    window.onload = function () {
+      const output = localStorage.getItem("simulationResult");
+      if (output) {
+        document.getElementById("result-output").innerText = output;
+      }
+    };
   
     document.addEventListener("DOMContentLoaded", function () {
       const outputData = localStorage.getItem("simulationResult");

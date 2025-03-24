@@ -15,7 +15,6 @@ class DirectMappedCache {
     const tag = address >> (this.offsetBits + this.indexBits);
 
     const hit = this.cache[index].valid && this.cache[index].tag === tag;
-    const validBit = hit ? 'Y' : 'N';
     if (!hit) {
       this.cache[index].tag = tag;
       this.cache[index].valid = true;
@@ -25,10 +24,10 @@ class DirectMappedCache {
       address,
       binAddr: address.toString(2).padStart(32, '0'),
       tag: tag.toString(2),
-      index: index.toString(2),
-      offset: offset.toString(2),
+      index: index.toString(2).padStart(this.indexBits, '0'),
+      offset: offset.toString(2).padStart(this.offsetBits, '0'),
       hitMiss: hit ? 'Hit' : 'Miss',
-      validBit,
+      validBit: hit ? 'Y' : 'N',
     };
   }
 }
@@ -49,7 +48,6 @@ class FullyAssociativeCache {
 
     const index = this.cache.indexOf(tag);
     const hit = index !== -1;
-    const validBit = hit ? 'Y' : 'N';
 
     if (hit) {
       this.cache.splice(index, 1);
@@ -64,9 +62,9 @@ class FullyAssociativeCache {
       binAddr: address.toString(2).padStart(32, '0'),
       tag: tag.toString(2),
       index: '-',
-      offset: offset.toString(2),
+      offset: offset.toString(2).padStart(this.offsetBits, '0'),
       hitMiss: hit ? 'Hit' : 'Miss',
-      validBit,
+      validBit: hit ? 'Y' : 'N',
     };
   }
 }
@@ -91,7 +89,6 @@ class SetAssociativeCache {
     const set = this.cache[index];
     const tagIndex = set.indexOf(tag);
     const hit = tagIndex !== -1;
-    const validBit = hit ? 'Y' : 'N';
 
     if (hit) {
       set.splice(tagIndex, 1);
@@ -105,17 +102,17 @@ class SetAssociativeCache {
       address,
       binAddr: address.toString(2).padStart(32, '0'),
       tag: tag.toString(2),
-      index: index.toString(2),
-      offset: offset.toString(2),
+      index: index.toString(2).padStart(this.indexBits, '0'),
+      offset: offset.toString(2).padStart(this.offsetBits, '0'),
       hitMiss: hit ? 'Hit' : 'Miss',
-      validBit,
+      validBit: hit ? 'Y' : 'N',
     };
   }
 }
 
 function runSimulation(cacheSize, numBlocks, numWordsPerBlock, wordAddrs) {
   const blockSize = numWordsPerBlock * 4; // Assume each word is 4 bytes
-  const ways = Math.min(numBlocks, 4); // ตั้งค่าเริ่มต้นเป็น 4-way หากไม่มีอินพุต
+  const ways = Math.max(1, Math.min(numBlocks, parseInt(document.getElementById('num-ways').value, 10) || 2));
 
   let output = '';
   let directHit = 0, directMiss = 0;
@@ -188,7 +185,7 @@ document.getElementById('run-button').addEventListener('click', () => {
   const numBlocks = parseInt(document.getElementById('num-blocks').value, 10);
   const numWords = parseInt(document.getElementById('num-words').value, 10);
   const wordAddrs = document.getElementById('word-addrs').value.split(' ').map(Number);
-  const ways = Math.min(numBlocks, 4);
+  const ways = Math.max(1, Math.min(numBlocks, parseInt(document.getElementById('num-ways').value, 10) || 2));
 
   if (isNaN(cacheSize) || isNaN(numBlocks) || isNaN(numWords) || wordAddrs.some(isNaN) || cacheSize <= 0 || numBlocks <= 0 || numWords <= 0 || ways < 1) {
     alert("Please enter valid positive numbers for all fields.");
@@ -199,4 +196,3 @@ document.getElementById('run-button').addEventListener('click', () => {
   localStorage.setItem("simulationResult", output);
   window.location.href = "result.html";
 });
-

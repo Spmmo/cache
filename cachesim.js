@@ -23,7 +23,7 @@ class DirectMappedCache {
     return {
       address,
       binAddr: address.toString(2).padStart(32, '0'),
-      tag: tag.toString(2),
+      tag: tag.toString(2).padStart(this.tagBits, '0'),
       index: index.toString(2).padStart(this.indexBits, '0'),
       offset: offset.toString(2).padStart(this.offsetBits, '0'),
       hitMiss: hit ? 'Hit' : 'Miss',
@@ -39,28 +39,26 @@ class FullyAssociativeCache {
     this.numBlocks = cacheSize / blockSize;
     this.offsetBits = Math.floor(Math.log2(blockSize));
     this.tagBits = 32 - this.offsetBits;
-    this.cache = [];
+    this.cache = new Map();
   }
 
   accessAddress(address) {
     const offset = address & ((1 << this.offsetBits) - 1);
     const tag = address >> this.offsetBits;
-
-    const index = this.cache.indexOf(tag);
-    const hit = index !== -1;
+    const hit = this.cache.has(tag);
 
     if (hit) {
-      this.cache.splice(index, 1);
-    } else if (this.cache.length >= this.numBlocks) {
-      this.cache.shift();
+      this.cache.delete(tag);
+    } else if (this.cache.size >= this.numBlocks) {
+      this.cache.delete(this.cache.keys().next().value); // ลบตัวที่เก่าสุด
     }
 
-    this.cache.push(tag);
+    this.cache.set(tag, true);
 
     return {
       address,
       binAddr: address.toString(2).padStart(32, '0'),
-      tag: tag.toString(2),
+      tag: tag.toString(2).padStart(this.tagBits, '0'),
       index: '-',
       offset: offset.toString(2).padStart(this.offsetBits, '0'),
       hitMiss: hit ? 'Hit' : 'Miss',
@@ -78,30 +76,28 @@ class SetAssociativeCache {
     this.offsetBits = Math.floor(Math.log2(blockSize));
     this.indexBits = Math.floor(Math.log2(this.numSets));
     this.tagBits = 32 - this.indexBits - this.offsetBits;
-    this.cache = Array.from({ length: this.numSets }, () => []);
+    this.cache = Array.from({ length: this.numSets }, () => new Map());
   }
 
   accessAddress(address) {
     const offset = address & ((1 << this.offsetBits) - 1);
     const index = (address >> this.offsetBits) & ((1 << this.indexBits) - 1);
     const tag = address >> (this.offsetBits + this.indexBits);
-
     const set = this.cache[index];
-    const tagIndex = set.indexOf(tag);
-    const hit = tagIndex !== -1;
+    const hit = set.has(tag);
 
     if (hit) {
-      set.splice(tagIndex, 1);
-    } else if (set.length >= this.ways) {
-      set.shift();
+      set.delete(tag);
+    } else if (set.size >= this.ways) {
+      set.delete(set.keys().next().value); // ลบตัวที่เก่าสุด
     }
 
-    set.push(tag);
+    set.set(tag, true);
 
     return {
       address,
       binAddr: address.toString(2).padStart(32, '0'),
-      tag: tag.toString(2),
+      tag: tag.toString(2).padStart(this.tagBits, '0'),
       index: index.toString(2).padStart(this.indexBits, '0'),
       offset: offset.toString(2).padStart(this.offsetBits, '0'),
       hitMiss: hit ? 'Hit' : 'Miss',
@@ -121,10 +117,10 @@ function runSimulation(cacheSize, numBlocks, numWordsPerBlock, wordAddrs) {
 
   // Direct-Mapped Cache
   output += 'Direct-Mapped Cache\n' +
-            '_________________________________________________________________________________________________\n' +
+            '___________________________________________________________________________________________________________________\n' +
             '\n' +
-            ' Word Addr.              Bin Addr.            Tag      Index    Offset   Hit/Miss    Valid Bit\n' +
-            '_________________________________________________________________________________________________\n' +
+            ' Word Addr.              Bin Addr.                         Tag            Index    Offset   Hit/Miss    Valid Bit\n' +
+            '___________________________________________________________________________________________________________________\n' +
             '\n';
   const directCache = new DirectMappedCache(cacheSize, blockSize);
   for (const addr of wordAddrs) {
@@ -138,10 +134,10 @@ function runSimulation(cacheSize, numBlocks, numWordsPerBlock, wordAddrs) {
 
   // Fully Associative Cache
   output += '\nFully Associative Cache\n' +
-            '_________________________________________________________________________________________________\n' +
+            '__________________________________________________________________________________________________________________\n' +
             '\n' +
-            ' Word Addr.              Bin Addr.            Tag      Index    Offset   Hit/Miss    Valid Bit\n' +
-            '_________________________________________________________________________________________________\n' +
+            ' Word Addr.              Bin Addr.                         Tag           Index    Offset   Hit/Miss    Valid Bit\n' +
+            '__________________________________________________________________________________________________________________\n' +
             '\n';
   const fullyCache = new FullyAssociativeCache(cacheSize, blockSize);
   for (const addr of wordAddrs) {
@@ -155,10 +151,10 @@ function runSimulation(cacheSize, numBlocks, numWordsPerBlock, wordAddrs) {
 
   // Set-Associative Cache
   output += '\nSet-Associative Cache\n' +
-            '_________________________________________________________________________________________________\n' +
+            '__________________________________________________________________________________________________________________\n' +
             '\n' +
-            ' Word Addr.              Bin Addr.            Tag      Index    Offset   Hit/Miss    Valid Bit\n' +
-            '_________________________________________________________________________________________________\n' +
+            ' Word Addr.              Bin Addr.                         Tag           Index    Offset   Hit/Miss    Valid Bit\n' +
+            '__________________________________________________________________________________________________________________\n' +
             '\n';
   const setAssocCache = new SetAssociativeCache(cacheSize, blockSize, ways);
   for (const addr of wordAddrs) {
